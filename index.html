@@ -30,15 +30,54 @@
   }
   .header p { font-size: 14px; color: #6b6b66; }
 
-  /* Tabs */
+  /* Tabs row */
+  .tabs-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
   .tabs {
     display: inline-flex;
     background: #f0eee8;
     border-radius: 10px;
     padding: 4px;
     gap: 2px;
-    margin-bottom: 1.5rem;
   }
+  .detail-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #6b6b66;
+    cursor: pointer;
+    user-select: none;
+  }
+  .detail-toggle input { display: none; }
+  .switch {
+    width: 32px;
+    height: 18px;
+    background: #d4d2cb;
+    border-radius: 10px;
+    position: relative;
+    transition: background 0.2s ease;
+  }
+  .switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  }
+  .detail-toggle input:checked + .switch { background: #131B63; }
+  .detail-toggle input:checked + .switch::after { transform: translateX(14px); }
   .tab {
     padding: 9px 20px;
     border: none;
@@ -132,7 +171,13 @@
   tr:last-child td { border-bottom: none; }
   tr:hover td { background: #fdfcf8; }
   .month-cell { font-weight: 500; color: #131B63; }
-  .price-main { font-weight: 500; color: #1a1a1a; font-size: 14px; }
+  .month-disc { font-size: 11px; color: #6b6b66; font-weight: 400; margin-top: 3px; }
+  .month-disc strong { color: #0F6E56; font-weight: 500; }
+  .calc { font-size: 10.5px; color: #999; margin-top: 3px; font-family: 'SF Mono', Menlo, Consolas, monospace; letter-spacing: -0.01em; }
+  .price-main { font-weight: 500; color: #1a1a1a; font-size: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .inc-tag { font-size: 9.5px; font-weight: 500; color: #185FA5; background: #e6f1fb; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.03em; text-transform: uppercase; }
+  .ex-gst { font-size: 11px; color: #6b6b66; margin-top: 2px; }
+  .ex-gst strong { color: #131B63; font-weight: 500; }
   .prev-price { font-size: 11px; color: #999; margin-top: 3px; }
   .down { color: #0F6E56; }
   .up { color: #993C1D; }
@@ -173,10 +218,17 @@
     <p>Compare three pricing options across Practice, Rapid Revision, and Gold plans.</p>
   </div>
 
-  <div class="tabs" role="tablist">
-    <button class="tab" data-opt="A">Option A</button>
-    <button class="tab is-active" data-opt="B">Option B</button>
-    <button class="tab" data-opt="C">Option C</button>
+  <div class="tabs-row">
+    <div class="tabs" role="tablist">
+      <button class="tab" data-opt="A">Option A</button>
+      <button class="tab is-active" data-opt="B">Option B</button>
+      <button class="tab" data-opt="C">Option C</button>
+    </div>
+    <label class="detail-toggle">
+      <input type="checkbox" id="detail-switch">
+      <span class="switch"></span>
+      <span>Show GST breakdown & math</span>
+    </label>
   </div>
 
   <div class="info-card">
@@ -203,7 +255,8 @@
   <div class="footer">
     <strong>Discount ladder (months 1–13):</strong>
     0% · 2% · 4% · 6% · 8% · 10% · 12% · 15% · 17% · 20% · 22% · 24% · 26%<br>
-    <strong>Formula:</strong> Price = 1m_anchor × months × (1 − discount). Rounded up to next ₹50, minus ₹1.
+    <strong>Formula:</strong> Price = 1m_anchor × months × (1 − discount). Rounded up to next ₹50, minus ₹1.<br>
+    <strong>GST treatment:</strong> Headline price = what customer pays (incl. 18% GST). Base = booked revenue (headline ÷ 1.18). GST = headline − Base. Base + GST always reconciles exactly to the headline.
   </div>
 
 </div>
@@ -265,16 +318,39 @@ function fmt(n) {
   return '₹' + Math.round(n).toLocaleString('en-IN');
 }
 
+function fmt2(n) {
+  return '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 function computePrice(plan, month, opt) {
   const anchor = optData[opt].anchors[plan];
   const discount = optData[opt].discounts[plan][month - 1];
   return roundPretty(anchor * month * (1 - discount / 100));
 }
 
+function exGst(n) {
+  return n / 1.18;
+}
+
+function gstAmt(n) {
+  return n - n / 1.18;
+}
+
+let showDetails = false;
+
 function formatCell(plan, month, opt) {
   const price = computePrice(plan, month, opt);
   const prev = previousPrices[plan][month];
-  let html = '<div class="price-main">' + fmt(price) + '</div>';
+  const anchor = optData[opt].anchors[plan];
+  const discount = optData[opt].discounts[plan][month - 1];
+  let html = '<div class="price-main">' + fmt(price);
+  if (showDetails) html += '<span class="inc-tag">incl. GST</span>';
+  html += '</div>';
+  if (showDetails) {
+    html += '<div class="ex-gst">Base (ex-GST): <strong>' + fmt2(exGst(price)) + '</strong></div>';
+    html += '<div class="ex-gst">GST 18%: <strong>' + fmt2(gstAmt(price)) + '</strong></div>';
+    html += '<div class="calc">' + fmt(anchor) + ' × ' + month + ' × (1 − ' + discount + '%) → ' + fmt(price) + '</div>';
+  }
   if (prev !== undefined) {
     const diff = price - prev;
     if (Math.abs(diff) < 50) {
@@ -298,16 +374,32 @@ function render(opt) {
   document.getElementById('opt-desc').textContent = optData[opt].desc;
 
   const a = optData[opt].anchors;
-  document.getElementById('anchors').innerHTML =
-    '<strong>1-month anchors</strong> &nbsp;·&nbsp; Practice ' + fmt(a.practice) +
+  const anchorLabel = showDetails ? '1-month anchors (incl. GST — what customer pays)' : '1-month anchors';
+  let anchorHtml = '<strong>' + anchorLabel + '</strong> &nbsp;·&nbsp; Practice ' + fmt(a.practice) +
     ' &nbsp;·&nbsp; Rapid ' + fmt(a.rapid) +
     ' &nbsp;·&nbsp; Gold ' + fmt(a.gold);
+  if (showDetails) {
+    anchorHtml += '<br><span style="opacity:0.8">Base (ex-GST — booked revenue) &nbsp;·&nbsp; Practice ' + fmt2(exGst(a.practice)) +
+      ' &nbsp;·&nbsp; Rapid ' + fmt2(exGst(a.rapid)) +
+      ' &nbsp;·&nbsp; Gold ' + fmt2(exGst(a.gold)) + '</span>' +
+      '<br><span style="opacity:0.8">GST 18% &nbsp;·&nbsp; Practice ' + fmt2(gstAmt(a.practice)) +
+      ' &nbsp;·&nbsp; Rapid ' + fmt2(gstAmt(a.rapid)) +
+      ' &nbsp;·&nbsp; Gold ' + fmt2(gstAmt(a.gold)) + '</span>';
+  }
+  document.getElementById('anchors').innerHTML = anchorHtml;
 
   let rowsHtml = '';
   for (let m = 1; m <= 13; m++) {
     const label = m + (m === 1 ? ' month' : ' months');
+    const stdDisc = standardDiscounts[m - 1];
+    const pracDisc = optData[opt].discounts.practice[m - 1];
+    let discLine = '<strong>' + stdDisc + '%</strong> off';
+    if (pracDisc !== stdDisc) {
+      discLine = 'Rapid/Gold <strong>' + stdDisc + '%</strong><br>Practice <strong>' + pracDisc + '%</strong>';
+    }
+    if (!showDetails) discLine = '';
     rowsHtml += '<tr>' +
-      '<td class="month-cell">' + label + '</td>' +
+      '<td><div class="month-cell">' + label + '</div><div class="month-disc">' + discLine + '</div></td>' +
       '<td>' + formatCell('practice', m, opt) + '</td>' +
       '<td>' + formatCell('rapid', m, opt) + '</td>' +
       '<td>' + formatCell('gold', m, opt) + '</td>' +
@@ -316,12 +408,19 @@ function render(opt) {
   document.getElementById('rows').innerHTML = rowsHtml;
 }
 
+let currentOpt = 'B';
+
 document.querySelectorAll('.tab').forEach(b => {
-  b.addEventListener('click', () => render(b.dataset.opt));
+  b.addEventListener('click', () => { currentOpt = b.dataset.opt; render(currentOpt); });
+});
+
+document.getElementById('detail-switch').addEventListener('change', (e) => {
+  showDetails = e.target.checked;
+  render(currentOpt);
 });
 
 // Start with Option B (the recommended one)
-render('B');
+render(currentOpt);
 </script>
 </body>
 </html>
