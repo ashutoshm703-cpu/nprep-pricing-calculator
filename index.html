@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NPrep Pricing Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #1a1a1a;
+    background: #fafaf8;
+    line-height: 1.5;
+    padding: 2.5rem 1rem 3rem;
+    min-height: 100vh;
+  }
+  .container { max-width: 940px; margin: 0 auto; }
+
+  /* Header */
+  .header { margin-bottom: 2rem; }
+  .header h1 {
+    font-size: 24px;
+    font-weight: 500;
+    color: #131B63;
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+  .header p { font-size: 14px; color: #6b6b66; }
+
+  /* Tabs */
+  .tabs {
+    display: inline-flex;
+    background: #f0eee8;
+    border-radius: 10px;
+    padding: 4px;
+    gap: 2px;
+    margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 9px 20px;
+    border: none;
+    background: transparent;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 400;
+    color: #6b6b66;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+  }
+  .tab:hover { color: #1a1a1a; }
+  .tab.is-active {
+    background: white;
+    color: #131B63;
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  /* Info card */
+  .info-card {
+    background: white;
+    border: 1px solid #e8e6dd;
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 1rem;
+  }
+  .info-title {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .rec-badge {
+    background: #e6f1fb;
+    color: #185FA5;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 5px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .info-desc {
+    font-size: 13px;
+    color: #6b6b66;
+    line-height: 1.65;
+  }
+
+  /* Anchors */
+  .anchors {
+    background: #f5f3ed;
+    border-radius: 10px;
+    padding: 11px 16px;
+    font-size: 12px;
+    color: #6b6b66;
+    margin-bottom: 1.5rem;
+  }
+  .anchors strong {
+    color: #131B63;
+    font-weight: 500;
+  }
+
+  /* Table */
+  .table-wrap {
+    background: white;
+    border: 1px solid #e8e6dd;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: left;
+    padding: 12px 16px;
+    background: #f5f3ed;
+    font-weight: 500;
+    font-size: 11px;
+    color: #6b6b66;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-bottom: 1px solid #e8e6dd;
+  }
+  td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0eee8;
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fdfcf8; }
+  .month-cell { font-weight: 500; color: #131B63; }
+  .price-main { font-weight: 500; color: #1a1a1a; font-size: 14px; }
+  .prev-price { font-size: 11px; color: #999; margin-top: 3px; }
+  .down { color: #0F6E56; }
+  .up { color: #993C1D; }
+
+  /* Footer */
+  .footer {
+    margin-top: 2rem;
+    padding: 14px 18px;
+    background: white;
+    border: 1px solid #e8e6dd;
+    border-radius: 10px;
+    font-size: 12px;
+    color: #6b6b66;
+    line-height: 1.6;
+  }
+  .footer strong { color: #131B63; font-weight: 500; }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .tabs { display: none; }
+    .info-card, .anchors, .table-wrap, .footer {
+      box-shadow: none;
+      border: 1px solid #ccc;
+    }
+  }
+  @media (max-width: 600px) {
+    body { padding: 1.5rem 0.75rem; }
+    th, td { padding: 10px 10px; font-size: 12px; }
+    .header h1 { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>NPrep Pricing Calculator</h1>
+    <p>Compare three pricing options across Practice, Rapid Revision, and Gold plans.</p>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" data-opt="A">Option A</button>
+    <button class="tab is-active" data-opt="B">Option B</button>
+    <button class="tab" data-opt="C">Option C</button>
+  </div>
+
+  <div class="info-card">
+    <div class="info-title" id="opt-title">Loading…</div>
+    <div class="info-desc" id="opt-desc"></div>
+  </div>
+
+  <div class="anchors" id="anchors"></div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:16%">Duration</th>
+          <th style="width:28%">Practice</th>
+          <th style="width:28%">Rapid Revision</th>
+          <th style="width:28%">Gold</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    <strong>Discount ladder (months 1–13):</strong>
+    0% · 2% · 4% · 6% · 8% · 10% · 12% · 15% · 17% · 20% · 22% · 24% · 26%<br>
+    <strong>Formula:</strong> Price = 1m_anchor × months × (1 − discount). Rounded up to next ₹50, minus ₹1.
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// EDITABLE CONFIGURATION
+// Change values here to adjust pricing across the calculator.
+// ============================================================
+
+// Discount % for months 1 through 13 (must have 13 values)
+const standardDiscounts = [0, 2, 4, 6, 8, 10, 12, 15, 17, 20, 22, 24, 26];
+
+// Steeper Practice curve used only in Option C
+const practiceCurveC = [0, 4, 8, 12, 16, 20, 23, 26, 29, 32, 35, 38, 41];
+
+// The three options — change anchors to test scenarios
+const optData = {
+  A: {
+    title: "Option A — Keep ₹999 anchor (Practice 6m goes up)",
+    desc: "Apply Gold's discount curve to all three plans. Practice 6m goes up ~₹600 to align. Cleanest math, one sales narrative — but the only option with an existing price increase.",
+    recommended: false,
+    anchors: { practice: 999, rapid: 1499, gold: 1999 },
+    discounts: { practice: standardDiscounts, rapid: standardDiscounts, gold: standardDiscounts }
+  },
+  B: {
+    title: "Option B — Lower anchor to ₹889 (nothing goes up)",
+    desc: "Practice 6m stays at ₹4,799. Practice 1m drops ₹110 (helps top-of-funnel). Rapid 3m drops ₹1,500 to fix the inversion. Nothing goes up — the most customer-friendly version.",
+    recommended: true,
+    anchors: { practice: 889, rapid: 1499, gold: 1999 },
+    discounts: { practice: standardDiscounts, rapid: standardDiscounts, gold: standardDiscounts }
+  },
+  C: {
+    title: "Option C — Steeper Practice curve (Practice 1m & 6m preserved)",
+    desc: "Practice's existing 1m (₹999) and 6m (₹4,799) preserved. Practice has a steeper discount slope than Gold/Rapid — two different curves to remember.",
+    recommended: false,
+    anchors: { practice: 999, rapid: 1499, gold: 1999 },
+    discounts: { practice: practiceCurveC, rapid: standardDiscounts, gold: standardDiscounts }
+  }
+};
+
+// Currently live prices on nprep.in — used to show "was ₹X" comparisons
+const previousPrices = {
+  practice: { 1: 999, 3: 3149, 6: 4799 },
+  rapid:    { 1: 1499, 3: 5849 },
+  gold:     { 1: 1999, 7: 12299, 12: 18149 }
+};
+
+// ============================================================
+// RENDERING LOGIC (no need to edit below)
+// ============================================================
+
+// Round up to next multiple of 50, then subtract 1 (gives ₹X,X49 or ₹X,X99)
+function roundPretty(n) {
+  return Math.ceil(n / 50) * 50 - 1;
+}
+
+function fmt(n) {
+  return '₹' + Math.round(n).toLocaleString('en-IN');
+}
+
+function computePrice(plan, month, opt) {
+  const anchor = optData[opt].anchors[plan];
+  const discount = optData[opt].discounts[plan][month - 1];
+  return roundPretty(anchor * month * (1 - discount / 100));
+}
+
+function formatCell(plan, month, opt) {
+  const price = computePrice(plan, month, opt);
+  const prev = previousPrices[plan][month];
+  let html = '<div class="price-main">' + fmt(price) + '</div>';
+  if (prev !== undefined) {
+    const diff = price - prev;
+    if (Math.abs(diff) < 50) {
+      html += '<div class="prev-price">was ' + fmt(prev) + ' · unchanged</div>';
+    } else if (diff < 0) {
+      html += '<div class="prev-price down">was ' + fmt(prev) + ' · ↓' + fmt(Math.abs(diff)) + '</div>';
+    } else {
+      html += '<div class="prev-price up">was ' + fmt(prev) + ' · ↑' + fmt(diff) + '</div>';
+    }
+  }
+  return html;
+}
+
+function render(opt) {
+  document.querySelectorAll('.tab').forEach(b => {
+    b.classList.toggle('is-active', b.dataset.opt === opt);
+  });
+
+  const rec = optData[opt].recommended ? '<span class="rec-badge">Recommended</span>' : '';
+  document.getElementById('opt-title').innerHTML = optData[opt].title + ' ' + rec;
+  document.getElementById('opt-desc').textContent = optData[opt].desc;
+
+  const a = optData[opt].anchors;
+  document.getElementById('anchors').innerHTML =
+    '<strong>1-month anchors</strong> &nbsp;·&nbsp; Practice ' + fmt(a.practice) +
+    ' &nbsp;·&nbsp; Rapid ' + fmt(a.rapid) +
+    ' &nbsp;·&nbsp; Gold ' + fmt(a.gold);
+
+  let rowsHtml = '';
+  for (let m = 1; m <= 13; m++) {
+    const label = m + (m === 1 ? ' month' : ' months');
+    rowsHtml += '<tr>' +
+      '<td class="month-cell">' + label + '</td>' +
+      '<td>' + formatCell('practice', m, opt) + '</td>' +
+      '<td>' + formatCell('rapid', m, opt) + '</td>' +
+      '<td>' + formatCell('gold', m, opt) + '</td>' +
+    '</tr>';
+  }
+  document.getElementById('rows').innerHTML = rowsHtml;
+}
+
+document.querySelectorAll('.tab').forEach(b => {
+  b.addEventListener('click', () => render(b.dataset.opt));
+});
+
+// Start with Option B (the recommended one)
+render('B');
+</script>
+</body>
+</html>
