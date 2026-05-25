@@ -170,6 +170,27 @@
   }
   tr:last-child td { border-bottom: none; }
   tr:hover td { background: #fdfcf8; }
+  .extended-row td { background: #fbfaf5; }
+  .extended-row:hover td { background: #f5f3ed; }
+  .months-toggle-wrap {
+    padding: 10px 12px;
+    border-top: 1px solid #e8e6dd;
+    background: #f5f3ed;
+    text-align: center;
+  }
+  .months-toggle {
+    background: white;
+    border: 1px solid #e8e6dd;
+    color: #131B63;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .months-toggle:hover { background: #f0eee8; border-color: #d4d2cb; }
   .month-cell { font-weight: 500; color: #131B63; }
   .month-disc { font-size: 11px; color: #6b6b66; font-weight: 400; margin-top: 3px; }
   .month-disc strong { color: #0F6E56; font-weight: 500; }
@@ -250,11 +271,15 @@
       </thead>
       <tbody id="rows"></tbody>
     </table>
+    <div class="months-toggle-wrap">
+      <button id="months-toggle" class="months-toggle">+ Show months 14–24</button>
+    </div>
   </div>
 
   <div class="footer">
-    <strong>Discount ladder (months 1–13):</strong>
-    0% · 2% · 4% · 6% · 8% · 10% · 12% · 15% · 17% · 20% · 22% · 24% · 26%<br>
+    <strong>Discount ladder (months 1–24):</strong>
+    0% · 2% · 4% · 6% · 8% · 10% · 12% · 15% · 17% · 20% · 22% · 24% · 26%
+    <em style="color:#999"> · 28% · 30% · 32% · 34% · 36% · 38% · 40% · 42% · 44% · 46% · 48% (extrapolated +2%/month)</em><br>
     <strong>Formula:</strong> Price = 1m_anchor × months × (1 − discount). Rounded up to next ₹50, minus ₹1.<br>
     <strong>GST treatment:</strong> Headline price = what customer pays (incl. 18% GST). Base = booked revenue (headline ÷ 1.18). GST = headline − Base. Base + GST always reconciles exactly to the headline.
   </div>
@@ -267,11 +292,17 @@
 // Change values here to adjust pricing across the calculator.
 // ============================================================
 
-// Discount % for months 1 through 13 (must have 13 values)
-const standardDiscounts = [0, 2, 4, 6, 8, 10, 12, 15, 17, 20, 22, 24, 26];
+// Discount % for months 1 through 24 (must have 24 values)
+// m1-m13 = original ladder; m14-m24 extrapolated at +2%/month
+const standardDiscounts = [0, 2, 4, 6, 8, 10, 12, 15, 17, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48];
 
 // Steeper Practice curve used only in Option C
-const practiceCurveC = [0, 4, 8, 12, 16, 20, 23, 26, 29, 32, 35, 38, 41];
+// m1-m13 = original; m14-m24 extrapolated at +3%/month
+const practiceCurveC = [0, 4, 8, 12, 16, 20, 23, 26, 29, 32, 35, 38, 41, 44, 47, 50, 53, 56, 59, 62, 65, 68, 71, 74];
+
+// Max month rendered. Default visible = 13. Beyond hidden behind toggle.
+const MAX_MONTHS = 24;
+const DEFAULT_VISIBLE_MONTHS = 13;
 
 // The three options — change anchors to test scenarios
 const optData = {
@@ -389,7 +420,7 @@ function render(opt) {
   document.getElementById('anchors').innerHTML = anchorHtml;
 
   let rowsHtml = '';
-  for (let m = 1; m <= 13; m++) {
+  for (let m = 1; m <= MAX_MONTHS; m++) {
     const label = m + (m === 1 ? ' month' : ' months');
     const stdDisc = standardDiscounts[m - 1];
     const pracDisc = optData[opt].discounts.practice[m - 1];
@@ -398,7 +429,8 @@ function render(opt) {
       discLine = 'Rapid/Gold <strong>' + stdDisc + '%</strong><br>Practice <strong>' + pracDisc + '%</strong>';
     }
     if (!showDetails) discLine = '';
-    rowsHtml += '<tr>' +
+    const extendedCls = m > DEFAULT_VISIBLE_MONTHS ? ' class="extended-row"' : '';
+    rowsHtml += '<tr' + extendedCls + '>' +
       '<td><div class="month-cell">' + label + '</div><div class="month-disc">' + discLine + '</div></td>' +
       '<td>' + formatCell('practice', m, opt) + '</td>' +
       '<td>' + formatCell('rapid', m, opt) + '</td>' +
@@ -406,12 +438,29 @@ function render(opt) {
     '</tr>';
   }
   document.getElementById('rows').innerHTML = rowsHtml;
+  applyMonthVisibility();
+}
+
+let showExtendedMonths = false;
+function applyMonthVisibility() {
+  document.querySelectorAll('.extended-row').forEach(r => {
+    r.style.display = showExtendedMonths ? '' : 'none';
+  });
+  const btn = document.getElementById('months-toggle');
+  if (btn) btn.textContent = showExtendedMonths
+    ? '− Hide months 14–24'
+    : '+ Show months 14–24';
 }
 
 let currentOpt = 'B';
 
 document.querySelectorAll('.tab').forEach(b => {
   b.addEventListener('click', () => { currentOpt = b.dataset.opt; render(currentOpt); });
+});
+
+document.getElementById('months-toggle').addEventListener('click', () => {
+  showExtendedMonths = !showExtendedMonths;
+  applyMonthVisibility();
 });
 
 document.getElementById('detail-switch').addEventListener('change', (e) => {
