@@ -143,6 +143,62 @@
     color: #131B63;
     font-weight: 500;
   }
+  .anchor-edit {
+    background: white;
+    border: 1px solid #e8e6dd;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: #6b6b66;
+  }
+  .anchor-edit-label {
+    font-weight: 500;
+    color: #131B63;
+  }
+  .anchor-field {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .anchor-field label { color: #6b6b66; }
+  .anchor-field .rupee { color: #6b6b66; font-weight: 500; }
+  .anchor-field input {
+    width: 78px;
+    padding: 6px 8px;
+    border: 1px solid #d4d2cb;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: #131B63;
+    background: white;
+    transition: border-color 0.15s ease;
+  }
+  .anchor-field input:focus {
+    outline: none;
+    border-color: #131B63;
+    box-shadow: 0 0 0 3px rgba(19, 27, 99, 0.08);
+  }
+  .anchor-reset {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid #e8e6dd;
+    color: #6b6b66;
+    font-family: inherit;
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .anchor-reset:hover { background: #f5f3ed; color: #131B63; }
+  .anchor-edit.disabled { opacity: 0.5; pointer-events: none; }
+  .anchor-edit-note { color: #999; font-size: 11px; font-style: italic; }
 
   /* Table */
   .table-wrap {
@@ -257,6 +313,26 @@
     <div class="info-desc" id="opt-desc"></div>
   </div>
 
+  <div class="anchor-edit" id="anchor-edit">
+    <span class="anchor-edit-label">Edit anchors:</span>
+    <span class="anchor-field">
+      <label for="anchor-practice">Practice</label>
+      <span class="rupee">₹</span>
+      <input type="number" id="anchor-practice" min="1" step="1">
+    </span>
+    <span class="anchor-field">
+      <label for="anchor-rapid">Rapid</label>
+      <span class="rupee">₹</span>
+      <input type="number" id="anchor-rapid" min="1" step="1">
+    </span>
+    <span class="anchor-field">
+      <label for="anchor-gold">Gold</label>
+      <span class="rupee">₹</span>
+      <input type="number" id="anchor-gold" min="1" step="1">
+    </span>
+    <button class="anchor-reset" id="anchor-reset">Reset</button>
+  </div>
+
   <div class="anchors" id="anchors"></div>
 
   <div class="table-wrap">
@@ -336,6 +412,13 @@ const previousPrices = {
   gold:     { 1: 1999, 7: 12299, 12: 18149 }
 };
 
+// Snapshot of original anchors so Reset works after edits
+const defaultAnchors = {
+  A: { ...optData.A.anchors },
+  B: { ...optData.B.anchors },
+  C: { ...optData.C.anchors }
+};
+
 // ============================================================
 // RENDERING LOGIC (no need to edit below)
 // ============================================================
@@ -405,6 +488,11 @@ function render(opt) {
   document.getElementById('opt-desc').textContent = optData[opt].desc;
 
   const a = optData[opt].anchors;
+
+  // Sync anchor input fields to current option's anchors
+  document.getElementById('anchor-practice').value = a.practice;
+  document.getElementById('anchor-rapid').value = a.rapid;
+  document.getElementById('anchor-gold').value = a.gold;
   const anchorLabel = showDetails ? '1-month anchors (incl. GST — what customer pays)' : '1-month anchors';
   let anchorHtml = '<strong>' + anchorLabel + '</strong> &nbsp;·&nbsp; Practice ' + fmt(a.practice) +
     ' &nbsp;·&nbsp; Rapid ' + fmt(a.rapid) +
@@ -461,6 +549,23 @@ document.querySelectorAll('.tab').forEach(b => {
 document.getElementById('months-toggle').addEventListener('click', () => {
   showExtendedMonths = !showExtendedMonths;
   applyMonthVisibility();
+});
+
+function bindAnchorInput(id, plan) {
+  document.getElementById(id).addEventListener('input', (e) => {
+    const v = parseInt(e.target.value, 10);
+    if (!Number.isFinite(v) || v < 1) return;
+    optData[currentOpt].anchors[plan] = v;
+    render(currentOpt);
+  });
+}
+bindAnchorInput('anchor-practice', 'practice');
+bindAnchorInput('anchor-rapid', 'rapid');
+bindAnchorInput('anchor-gold', 'gold');
+
+document.getElementById('anchor-reset').addEventListener('click', () => {
+  optData[currentOpt].anchors = { ...defaultAnchors[currentOpt] };
+  render(currentOpt);
 });
 
 document.getElementById('detail-switch').addEventListener('change', (e) => {
