@@ -292,15 +292,10 @@
 
   <div class="header">
     <h1>NPrep Pricing Calculator</h1>
-    <p>Compare three pricing options across Practice, Rapid Revision, and Gold plans.</p>
+    <p>Pricing across Practice, Rapid Revision, and Gold plans.</p>
   </div>
 
   <div class="tabs-row">
-    <div class="tabs" role="tablist">
-      <button class="tab" data-opt="A">Option A</button>
-      <button class="tab is-active" data-opt="B">Option B</button>
-      <button class="tab" data-opt="C">Option C</button>
-    </div>
     <label class="detail-toggle">
       <input type="checkbox" id="detail-switch">
       <span class="switch"></span>
@@ -372,36 +367,18 @@
 // m1-m13 = original ladder; m14-m24 extrapolated at +2%/month
 const standardDiscounts = [0, 2, 4, 6, 8, 10, 12, 15, 17, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48];
 
-// Steeper Practice curve used only in Option C
-// m1-m13 = original; m14-m24 extrapolated at +3%/month
-const practiceCurveC = [0, 4, 8, 12, 16, 20, 23, 26, 29, 32, 35, 38, 41, 44, 47, 50, 53, 56, 59, 62, 65, 68, 71, 74];
-
 // Max month rendered. Default visible = 13. Beyond hidden behind toggle.
 const MAX_MONTHS = 24;
 const DEFAULT_VISIBLE_MONTHS = 13;
 
-// The three options — change anchors to test scenarios
+// Pricing scenario — change anchors via the inputs to test variations
 const optData = {
   A: {
-    title: "Option A — Keep ₹999 anchor (Practice 6m goes up)",
-    desc: "Apply Gold's discount curve to all three plans. Practice 6m goes up ~₹600 to align. Cleanest math, one sales narrative — but the only option with an existing price increase.",
+    title: "Keep ₹999 anchor",
+    desc: "Apply Gold's discount curve to all three plans. Edit any anchor below to model a different scenario; the whole table recalculates live.",
     recommended: false,
     anchors: { practice: 999, rapid: 1499, gold: 1999 },
     discounts: { practice: standardDiscounts, rapid: standardDiscounts, gold: standardDiscounts }
-  },
-  B: {
-    title: "Option B — Lower anchor to ₹889 (nothing goes up)",
-    desc: "Practice 6m stays at ₹4,799. Practice 1m drops ₹110 (helps top-of-funnel). Rapid 3m drops ₹1,500 to fix the inversion. Nothing goes up — the most customer-friendly version.",
-    recommended: true,
-    anchors: { practice: 889, rapid: 1499, gold: 1999 },
-    discounts: { practice: standardDiscounts, rapid: standardDiscounts, gold: standardDiscounts }
-  },
-  C: {
-    title: "Option C — Steeper Practice curve (Practice 1m & 6m preserved)",
-    desc: "Practice's existing 1m (₹999) and 6m (₹4,799) preserved. Practice has a steeper discount slope than Gold/Rapid — two different curves to remember.",
-    recommended: false,
-    anchors: { practice: 999, rapid: 1499, gold: 1999 },
-    discounts: { practice: practiceCurveC, rapid: standardDiscounts, gold: standardDiscounts }
   }
 };
 
@@ -414,9 +391,7 @@ const previousPrices = {
 
 // Snapshot of original anchors so Reset works after edits
 const defaultAnchors = {
-  A: { ...optData.A.anchors },
-  B: { ...optData.B.anchors },
-  C: { ...optData.C.anchors }
+  A: { ...optData.A.anchors }
 };
 
 // ============================================================
@@ -540,7 +515,7 @@ function applyMonthVisibility() {
     : '+ Show months 14–24';
 }
 
-let currentOpt = 'B';
+let currentOpt = 'A';
 
 document.querySelectorAll('.tab').forEach(b => {
   b.addEventListener('click', () => { currentOpt = b.dataset.opt; render(currentOpt); });
