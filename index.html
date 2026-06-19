@@ -30,6 +30,34 @@
   }
   .header p { font-size: 14px; color: #6b6b66; }
 
+  /* Page-level tabs (top nav between calculator and comparison) */
+  .page-tabs {
+    display: inline-flex;
+    background: #f0eee8;
+    border-radius: 10px;
+    padding: 4px;
+    gap: 2px;
+    margin-bottom: 1.5rem;
+  }
+  .page-tab {
+    padding: 9px 18px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 400;
+    color: #6b6b66;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+  .page-tab:hover { color: #1a1a1a; }
+  .page-tab.is-active {
+    background: white;
+    color: #131B63;
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
   /* Tabs row */
   .tabs-row {
     display: flex;
@@ -253,6 +281,9 @@
   .calc { font-size: 10.5px; color: #999; margin-top: 3px; font-family: 'SF Mono', Menlo, Consolas, monospace; letter-spacing: -0.01em; }
   .price-main { font-weight: 500; color: #1a1a1a; font-size: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .inc-tag { font-size: 9.5px; font-weight: 500; color: #185FA5; background: #e6f1fb; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.03em; text-transform: uppercase; }
+  .mrp-row { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; flex-wrap: wrap; }
+  .mrp-strike { font-size: 11.5px; color: #999; text-decoration: line-through; }
+  .mrp-tag { font-size: 9.5px; font-weight: 500; color: #0F6E56; background: #e6f4ed; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.03em; }
   .ex-gst { font-size: 11px; color: #6b6b66; margin-top: 2px; }
   .ex-gst strong { color: #131B63; font-weight: 500; }
   .prev-price { font-size: 11px; color: #999; margin-top: 3px; }
@@ -293,6 +324,11 @@
   <div class="header">
     <h1>NPrep Pricing Calculator</h1>
     <p>Pricing across Practice, Rapid Revision, and Gold plans.</p>
+  </div>
+
+  <div class="page-tabs">
+    <a href="index.html" class="page-tab is-active">Calculator</a>
+    <a href="compare.html" class="page-tab">Model comparison</a>
   </div>
 
   <div class="tabs-row">
@@ -423,6 +459,12 @@ function exGst(n) {
 
 function gstAmt(n) {
   return n - n / 1.18;
+}
+
+// MRP is 4/3 × selling price (so selling price = MRP × 0.75 = 25% off).
+// Pretty-round MRP to next ₹50 ending in 49/99 for clean display.
+function mrpFromPrice(price) {
+  return roundPretty(price * 4 / 3);
 }
 
 let showDetails = false;

@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NPrep Pricing — Model Comparison</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #1a1a1a;
+    background: #fafaf8;
+    line-height: 1.5;
+    padding: 2.5rem 1rem 3rem;
+    min-height: 100vh;
+  }
+  .container { max-width: 1280px; margin: 0 auto; }
+
+  .header { margin-bottom: 2rem; }
+  .header h1 {
+    font-size: 24px;
+    font-weight: 500;
+    color: #131B63;
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+  .header p { font-size: 14px; color: #6b6b66; }
+  .header a {
+    color: #185FA5;
+    text-decoration: none;
+    border-bottom: 1px dotted #185FA5;
+    font-size: 13px;
+    margin-left: 10px;
+  }
+
+  /* Page-level tabs */
+  .page-tabs {
+    display: inline-flex;
+    background: #f0eee8;
+    border-radius: 10px;
+    padding: 4px;
+    gap: 2px;
+    margin-bottom: 1.5rem;
+  }
+  .page-tab {
+    padding: 9px 18px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 400;
+    color: #6b6b66;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+  .page-tab:hover { color: #1a1a1a; }
+  .page-tab.is-active {
+    background: white;
+    color: #131B63;
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  .legend {
+    background: white;
+    border: 1px solid #e8e6dd;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  .legend h3 {
+    font-size: 13px;
+    font-weight: 500;
+    color: #131B63;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .legend .tag-a { background: #e6f1fb; color: #185FA5; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+  .legend .tag-b { background: #f5edff; color: #6b3da8; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+  .legend p { font-size: 12px; color: #6b6b66; line-height: 1.65; }
+  .legend code {
+    background: #f5f3ed;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 11px;
+    color: #131B63;
+  }
+
+  .controls {
+    background: white;
+    border: 1px solid #e8e6dd;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: #6b6b66;
+  }
+  .controls strong { color: #131B63; font-weight: 500; }
+  .control-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .control-group input {
+    width: 78px;
+    padding: 6px 8px;
+    border: 1px solid #d4d2cb;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: #131B63;
+    background: white;
+  }
+  .control-group input:focus {
+    outline: none;
+    border-color: #131B63;
+    box-shadow: 0 0 0 3px rgba(19, 27, 99, 0.08);
+  }
+  .reset-btn {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid #e8e6dd;
+    color: #6b6b66;
+    font-family: inherit;
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .reset-btn:hover { background: #f5f3ed; color: #131B63; }
+
+  .plan-block {
+    margin-bottom: 2rem;
+  }
+  .plan-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: #131B63;
+    margin-bottom: 8px;
+    padding-left: 4px;
+  }
+
+  .table-wrap {
+    background: white;
+    border: 1px solid #e8e6dd;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th {
+    text-align: left;
+    padding: 11px 14px;
+    background: #f5f3ed;
+    font-weight: 500;
+    font-size: 11px;
+    color: #6b6b66;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-bottom: 1px solid #e8e6dd;
+  }
+  th.model-a { background: #eef5fb; color: #185FA5; }
+  th.model-b { background: #f4ecff; color: #6b3da8; }
+  td {
+    padding: 11px 14px;
+    border-bottom: 1px solid #f0eee8;
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fdfcf8; }
+  .month-cell { font-weight: 500; color: #131B63; font-size: 12.5px; }
+  .price { font-weight: 500; color: #1a1a1a; font-size: 13.5px; }
+  .strike { font-size: 11px; color: #999; text-decoration: line-through; }
+  .delta-up { color: #993C1D; font-size: 11px; font-weight: 500; }
+  .delta-down { color: #0F6E56; font-size: 11px; font-weight: 500; }
+  .delta-zero { color: #999; font-size: 11px; }
+  .calc { font-size: 10.5px; color: #999; margin-top: 2px; font-family: 'SF Mono', Menlo, Consolas, monospace; }
+  .extended-row td { background: #fbfaf5; }
+  .extended-row:hover td { background: #f5f3ed; }
+  .months-toggle-wrap {
+    padding: 8px 12px;
+    border-top: 1px solid #e8e6dd;
+    background: #f5f3ed;
+    text-align: center;
+  }
+  .months-toggle {
+    background: white;
+    border: 1px solid #e8e6dd;
+    color: #131B63;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 7px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .months-toggle:hover { background: #f0eee8; }
+
+  .footer {
+    margin-top: 1.5rem;
+    padding: 14px 18px;
+    background: white;
+    border: 1px solid #e8e6dd;
+    border-radius: 10px;
+    font-size: 12px;
+    color: #6b6b66;
+    line-height: 1.6;
+  }
+  .footer strong { color: #131B63; font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Model comparison — Anchor-first vs MRP-first</h1>
+    <p>Same discount ladder and pretty-rounding. Different starting point.</p>
+  </div>
+
+  <div class="page-tabs">
+    <a href="index.html" class="page-tab">Calculator</a>
+    <a href="compare.html" class="page-tab is-active">Model comparison</a>
+  </div>
+
+  <div class="legend">
+    <div>
+      <h3><span class="tag-a">Model A</span> Anchor-first (current production model)</h3>
+      <p>Start from 1-month <strong>headline anchor</strong> (incl. GST). Apply month-volume discount → headline. MRP is back-derived: <code>MRP = headline × 4/3</code>. Customer sees ~25% off (cosmetic). Real math = anchor × m × (1−d).</p>
+    </div>
+    <div>
+      <h3><span class="tag-b">Model B</span> MRP-first (proposed)</h3>
+      <p>Start from 1-month <strong>MRP anchor</strong>. Apply month-volume discount → MRP at m months (ceil pretty-round). Headline = MRP × 0.75, then <strong>floor pretty-round</strong> → always ≤ 25% — i.e. student always gets ≥25% off. No "we promised 25, gave 24.9" complaints.</p>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none;">
+      <input type="checkbox" id="show-math" style="margin:0">
+      <strong>Show full math per cell</strong>
+    </label>
+    <span style="color:#999">|</span>
+    <strong>Anchors:</strong>
+    <span class="control-group">
+      <label>Practice — A ₹</label>
+      <input type="number" id="a-practice" min="1" step="1">
+    </span>
+    <span class="control-group">
+      <label>B ₹</label>
+      <input type="number" id="b-practice" min="1" step="1">
+    </span>
+    <span class="control-group">
+      <label>Rapid — A ₹</label>
+      <input type="number" id="a-rapid" min="1" step="1">
+    </span>
+    <span class="control-group">
+      <label>B ₹</label>
+      <input type="number" id="b-rapid" min="1" step="1">
+    </span>
+    <span class="control-group">
+      <label>Gold — A ₹</label>
+      <input type="number" id="a-gold" min="1" step="1">
+    </span>
+    <span class="control-group">
+      <label>B ₹</label>
+      <input type="number" id="b-gold" min="1" step="1">
+    </span>
+    <button class="reset-btn" id="reset">Reset</button>
+  </div>
+
+  <div id="plans"></div>
+
+  <div class="footer">
+    <strong>Shared rules across both models:</strong> Discount ladder (months 1–24): 0% · 2% · 4% · 6% · 8% · 10% · 12% · 15% · 17% · 20% · 22% · 24% · 26% · 28% · 30% · 32% · 34% · 36% · 38% · 40% · 42% · 44% · 46% · 48%.
+    Pretty-round = ceil to next ₹50, minus ₹1 (always ends in 49 or 99). GST 18% inclusive in all headlines.
+    <br><br>
+    <strong>Why MRP-first differs:</strong> Two pretty-roundings stack — MRP rounds <em>up</em> (ceil ÷50 ×50 −1), headline rounds <em>down</em> (floor (n+1)÷50 ×50 −1). The asymmetric rounding guarantees real discount off MRP is always ≥25% — student never gets less than the advertised cut. Headline drifts vs Model A; Δ column shows the gap (positive = Model B headline is more expensive than Model A).
+  </div>
+
+</div>
+
+<script>
+const standardDiscounts = [0, 2, 4, 6, 8, 10, 12, 15, 17, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48];
+const MAX_MONTHS = 24;
+const DEFAULT_VISIBLE_MONTHS = 13;
+
+const PLANS = ['practice', 'rapid', 'gold'];
+const PLAN_LABEL = { practice: 'Practice', rapid: 'Rapid Revision', gold: 'Gold' };
+
+// Defaults: Model A anchors match current production (Option B from main calculator)
+// Model B mrpAnchor = pretty-round(Model A anchor × 4/3) so 1-month rows roughly align
+const defaultAnchorsA = { practice: 889, rapid: 1499, gold: 1999 };
+const defaultAnchorsB = {
+  practice: roundPrettyStandalone(889 * 4 / 3),
+  rapid:    roundPrettyStandalone(1499 * 4 / 3),
+  gold:     roundPrettyStandalone(1999 * 4 / 3)
+};
+const anchorsA = { ...defaultAnchorsA };
+const anchorsB = { ...defaultAnchorsB };
+
+function roundPrettyStandalone(n) { return Math.ceil(n / 50) * 50 - 1; }
+function roundPretty(n) { return Math.ceil(n / 50) * 50 - 1; }
+// Floor to nearest pretty number ≤ n (ending in 49 or 99). Used for headline
+// derivation in Model B so real discount off MRP is ALWAYS ≥ 25%.
+function floorPretty(n) { return Math.floor((n + 1) / 50) * 50 - 1; }
+function fmt(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
+
+// --- Model A: anchor-first ---
+function priceA(plan, m) {
+  const d = standardDiscounts[m - 1];
+  return roundPretty(anchorsA[plan] * m * (1 - d / 100));
+}
+function mrpA(plan, m) {
+  return roundPretty(priceA(plan, m) * 4 / 3);
+}
+
+// --- Model B: MRP-first ---
+function mrpB(plan, m) {
+  const d = standardDiscounts[m - 1];
+  return roundPretty(anchorsB[plan] * m * (1 - d / 100));
+}
+function priceB(plan, m) {
+  return floorPretty(mrpB(plan, m) * 0.75);
+}
+
+let showExtended = false;
+let showMath = false;
+
+function fmt2(n) { return '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+function renderPlan(plan) {
+  let rows = '';
+  for (let m = 1; m <= MAX_MONTHS; m++) {
+    const label = m + (m === 1 ? ' month' : ' months');
+    const d = standardDiscounts[m - 1];
+    const pA = priceA(plan, m);
+    const mA = mrpA(plan, m);
+    const pB = priceB(plan, m);
+    const mB = mrpB(plan, m);
+    const delta = pB - pA;
+    let deltaCell;
+    if (delta === 0) deltaCell = '<span class="delta-zero">±0</span>';
+    else if (delta > 0) deltaCell = '<span class="delta-up">+' + fmt(delta) + '</span>';
+    else deltaCell = '<span class="delta-down">−' + fmt(-delta) + '</span>';
+
+    // Model A full math
+    const aRaw = anchorsA[plan] * m * (1 - d / 100);
+    const aMrpRaw = pA * 4 / 3;
+    const aActualDisc = ((mA - pA) / mA * 100);
+    let aMath = '';
+    if (showMath) {
+      aMath = '<div class="calc">headline: ' + anchorsA[plan] + ' × ' + m + ' × ' + (1 - d / 100).toFixed(2) + ' = ' + fmt2(aRaw) + ' → ' + fmt(pA) + '</div>' +
+              '<div class="calc">MRP: ' + pA + ' × 4/3 = ' + fmt2(aMrpRaw) + ' → ' + fmt(mA) + '</div>' +
+              '<div class="calc">real disc off MRP: ' + aActualDisc.toFixed(2) + '%</div>';
+    }
+
+    // Model B full math
+    const bMrpRaw = anchorsB[plan] * m * (1 - d / 100);
+    const bPriceRaw = mB * 0.75;
+    const bActualDisc = ((mB - pB) / mB * 100);
+    let bMath = '';
+    if (showMath) {
+      bMath = '<div class="calc">MRP: ' + anchorsB[plan] + ' × ' + m + ' × ' + (1 - d / 100).toFixed(2) + ' = ' + fmt2(bMrpRaw) + ' → ' + fmt(mB) + ' (ceil)</div>' +
+              '<div class="calc">headline: ' + mB + ' × 0.75 = ' + fmt2(bPriceRaw) + ' → ' + fmt(pB) + ' (floor — guarantees ≥25%)</div>' +
+              '<div class="calc">real disc off MRP: ' + bActualDisc.toFixed(2) + '%</div>';
+    }
+
+    const extCls = m > DEFAULT_VISIBLE_MONTHS ? ' class="extended-row"' : '';
+    rows += '<tr' + extCls + '>' +
+      '<td><div class="month-cell">' + label + '</div><div class="calc">d=' + d + '%</div></td>' +
+      '<td><div class="strike">MRP ' + fmt(mA) + '</div><div class="price">' + fmt(pA) + '</div>' + aMath + '</td>' +
+      '<td><div class="strike">MRP ' + fmt(mB) + '</div><div class="price">' + fmt(pB) + '</div>' + bMath + '</td>' +
+      '<td>' + deltaCell + '</td>' +
+    '</tr>';
+  }
+
+  return '<div class="plan-block">' +
+    '<div class="plan-title">' + PLAN_LABEL[plan] + '</div>' +
+    '<div class="table-wrap">' +
+      '<table>' +
+        '<thead><tr>' +
+          '<th style="width:14%">Duration</th>' +
+          '<th class="model-a" style="width:30%">Model A — Anchor ' + fmt(anchorsA[plan]) + '</th>' +
+          '<th class="model-b" style="width:30%">Model B — MRP anchor ' + fmt(anchorsB[plan]) + '</th>' +
+          '<th style="width:14%">Δ (B − A)</th>' +
+        '</tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+      '</table>' +
+      '<div class="months-toggle-wrap">' +
+        '<button class="months-toggle" data-plan="' + plan + '">' + (showExtended ? '− Hide months 14–24' : '+ Show months 14–24') + '</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function render() {
+  document.getElementById('a-practice').value = anchorsA.practice;
+  document.getElementById('a-rapid').value = anchorsA.rapid;
+  document.getElementById('a-gold').value = anchorsA.gold;
+  document.getElementById('b-practice').value = anchorsB.practice;
+  document.getElementById('b-rapid').value = anchorsB.rapid;
+  document.getElementById('b-gold').value = anchorsB.gold;
+
+  document.getElementById('plans').innerHTML = PLANS.map(renderPlan).join('');
+  applyMonthVisibility();
+  bindToggleButtons();
+}
+
+function applyMonthVisibility() {
+  document.querySelectorAll('.extended-row').forEach(r => {
+    r.style.display = showExtended ? '' : 'none';
+  });
+}
+
+function bindToggleButtons() {
+  document.querySelectorAll('.months-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      showExtended = !showExtended;
+      render();
+    });
+  });
+}
+
+function bindAnchorInput(id, target, plan) {
+  document.getElementById(id).addEventListener('input', (e) => {
+    const v = parseInt(e.target.value, 10);
+    if (!Number.isFinite(v) || v < 1) return;
+    target[plan] = v;
+    render();
+  });
+}
+bindAnchorInput('a-practice', anchorsA, 'practice');
+bindAnchorInput('a-rapid', anchorsA, 'rapid');
+bindAnchorInput('a-gold', anchorsA, 'gold');
+bindAnchorInput('b-practice', anchorsB, 'practice');
+bindAnchorInput('b-rapid', anchorsB, 'rapid');
+bindAnchorInput('b-gold', anchorsB, 'gold');
+
+document.getElementById('reset').addEventListener('click', () => {
+  Object.assign(anchorsA, defaultAnchorsA);
+  Object.assign(anchorsB, defaultAnchorsB);
+  render();
+});
+
+document.getElementById('show-math').addEventListener('change', (e) => {
+  showMath = e.target.checked;
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
